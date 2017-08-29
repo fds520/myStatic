@@ -1,0 +1,116 @@
+<!doctype html>
+<!--HTML5 doctype-->
+<html>
+
+<head>
+    <title>动态详情</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport"
+          content="width=device-width,height=device-height,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <meta name="format-detection" content="telephone=no">
+    <!--框架开始-->
+    <script src="js/jquery-1.11.1.min.js"></script>
+    <script src="js/framework.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/tuimobile.css"/>
+    <!--框架结束-->
+    <link rel="stylesheet" type="text/css" id="skin" href="css/daning_wx_style.css"/>
+    <!--vue-->
+    <script src="js/vue.js"></script>
+    <script src="js/vue-resource.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/tui_loading.js"></script>
+    <script src="js/tui_popWin.js"></script>
+    <script src="js/config.js"></script>
+    <script>
+        $(function () {
+            var recordInfoCode = parseQueryString().recordInfoCode;
+
+            // 从自己的空间过来的
+            var flag = parseQueryString().flag;
+            var userCode = getCookieValue("userCode");
+            if (isEmpty(userCode)) {
+                function redirectLogin() {
+                    window.location = "login.html";
+                }
+
+                $.showAlert({
+                    'title': '提示',
+                    'content': '登录超时，请重新登录',
+                    'sure': redirectLogin
+                });
+                return;
+            }
+            new Vue({
+                el: '#app',
+                data: {
+                    recordInfoDetail: '',
+                    flag: flag
+                },
+                methods: {
+                    recordList: function () {
+                        $.showLoading()
+                        this.$http.get(recordinfo.details, {
+                            recordInfoCode: recordInfoCode,
+                            userCode: userCode,
+                            isAdd: flag == 1 ? 0 : 1
+                        }).then(function (result) {
+                            $.removeLoading();
+                            this.recordInfoDetail = result.data.data;
+                        }, function () {
+                            $.removeLoading();
+                            $.showAlert({
+                                'title': '提示',
+                                'content': '页面偷懒了~~',
+                                'sure': this.close
+                            });
+                        })
+                    },
+                    close: function () {
+                        history.go(-1);
+                    },
+                    deleteInfo: function (recordInfoCode) {
+                        this.$http.get(recordinfo.delete, {
+                            recordInfoCode: recordInfoCode,
+                        }).then(function (result) {
+                            $.removeLoading();
+                            // TODO 删除
+                            history.go(-1);
+                        }, function () {
+                            $.removeLoading();
+                            $.showAlert({
+                                'title': '提示',
+                                'content': '页面偷懒了~~',
+                                'sure': this.close
+                            });
+                        })
+                    }
+                },
+                ready: function () {
+                    this.recordList();
+                },
+            })
+        })
+    </script>
+</head>
+
+<body class="wbg" id="app">
+<section>
+    <div>
+        <header class="tui_header header1">
+            <h1>动态详情
+                <div class="backicon" data-href="JavaScript:history.go(-1)"></div>
+            </h1>
+        </header>
+        <div class="tui_container past-act">
+            <div class="past-activity" v-html="recordInfoDetail.content"></div>
+            <div>点赞次数：{{recordInfoDetail.goodCount}}</div>
+            <div class="footerbtn" v-if="flag == 1">
+                <button @click="deleteInfo(recordInfoDetail.recordInfoCode)" class="btn btn_primary  btn_block">删除动态
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+
+</html>

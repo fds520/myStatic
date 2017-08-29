@@ -1,0 +1,97 @@
+<!doctype html>
+<!--HTML5 doctype-->
+<html>
+
+<head>
+    <title>所有动态</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport"
+          content="width=device-width,height=device-height,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <meta name="format-detection" content="telephone=no">
+    <!--框架开始-->
+    <script src="js/jquery-1.11.1.min.js"></script>
+    <script src="js/framework.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/tuimobile.css"/>
+    <!--框架结束-->
+    <link rel="stylesheet" type="text/css" id="skin" href="css/daning_wx_style.css"/>
+    <!--vue-->
+    <script src="js/vue.js"></script>
+    <script src="js/vue-resource.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/tui_loading.js"></script>
+    <script src="js/tui_popWin.js"></script>
+    <script src="js/config.js"></script>
+    <script>
+        $(function () {
+            var userCode = getCookieValue("userCode");
+            if (isEmpty(userCode)) {
+                function redirectLogin() {
+                    window.location = "login.html";
+                }
+
+                $.showAlert({
+                    'title': '提示',
+                    'content': '登录超时，请重新登录',
+                    'sure': redirectLogin
+                });
+                return;
+            }
+            new Vue({
+                el: '#app',
+                data: {
+                    items: [],
+                },
+                methods: {
+                    recordList: function () {
+                        $.showLoading()
+                        this.$http.get(recordinfo.getlist, {
+                            pageNum: 1,
+                            pageSize: 50
+                        }).then(function (result) {
+                            $.removeLoading();
+                            this.items = result.data.data;
+                        }, function () {
+                            $.removeLoading();
+                            $.showAlert({
+                                'title': '提示',
+                                'content': '页面偷懒了~~',
+                                'sure': this.close
+                            });
+                        })
+                    },
+                    close: function () {
+                        history.go(-1);
+                    },
+                    linkDetails: function (recordInfoCode) {
+                        window.location.href = "recordInfoDetails.html?recordInfoCode=" + recordInfoCode + "&flag=0";
+                    }
+                },
+                ready: function () {
+                    this.recordList();
+                },
+            })
+        })
+    </script>
+</head>
+
+<body class="wbg" id="app">
+<section>
+    <div>
+        <header class="tui_header header1">
+            <h1>所有动态
+                <div class="backicon" data-href="JavaScript:history.go(-1)"></div>
+            </h1>
+        </header>
+        <div class="tui_container past-act" v-show="items.length > 0">
+            <span v-for="item in items" @click="linkDetails(item.recordInfoCode)">
+                 <div class="past-activity" v-text="item.title"></div>
+            <img :src="item.pictureUrl"/>
+            <span>浏览次数：{{item.browseCount}}</span>
+                <hr/>
+            </span>
+        </div>
+    </div>
+</section>
+</body>
+
+</html>

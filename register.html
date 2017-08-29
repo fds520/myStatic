@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <head>
+        <title>注册页面</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <meta name="viewport"
+              content="width=device-width,height=device-height,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+        <meta name="format-detection" content="telephone=no">
+        <script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
+        <script src="js/framework.js"></script>
+        <link rel="stylesheet" type="text/css" href="css/tuimobile.css"/>
+        <link rel="stylesheet" type="text/css" id="skin" href="css/daning_wx_style.css"/>
+        <script src="js/vue.js"></script>
+        <script src="js/vue-resource.js"></script>
+        <script src="js/utils.js"></script>
+        <script src="js/tui_loading.js"></script>
+        <script src="js/tui_popWin.js"></script>
+        <script src="js/config.js"></script>
+        <script src="js/CodeValidate.js"></script>
+        <script type="text/javascript">
+            $(function () {
+                var myValidation = $(".yz-btn").btnValidation({
+                    time: 60,
+                    txt: "重新获取(n)"
+                });
+                $(".yz-btn").bind('click', function (e) {
+                    myValidation.start();
+                });
+                var resultCode;
+                new Vue({
+                    el: '#app',
+                    data: {
+                        userName: '',
+                        phone: '',
+                        code: '',
+                        userNameFlag: false,
+                        phoneFlag: false
+                    },
+                    methods: {
+                        registerUser: function () {
+                            var userName = $("#userName").val();
+                            var password = $("#password").val();
+                            var psw = $("#psw").val();
+                            if (password != psw) {
+                                $(".login_index.register .yz span").animate({"top": "0px"}, 200);
+                                return;
+                            }
+
+                            if (this.code == resultCode) {
+                                if (this.userNameFlag && this.phoneFlag) {
+                                    this.$http.post(userinfo.registeruser, {
+                                        userName: userName,
+                                        password: password,
+                                        phone: this.phone
+                                    }, {
+                                        emulateJSON: true
+                                    }).then(function (result) {
+                                        if (1 == result.data.data) {
+                                            alert("注册成功")
+                                            window.location = "login.html";
+                                        } else {
+                                            $.showAlert({
+                                                'title': '提示',
+                                                'content': '注册失败',
+                                                'sure': ''
+                                            });
+                                        }
+                                        // $(".login_index.register .yz span").animate({"top": "0px"}, 200);
+                                    }, function () {
+
+                                    })
+                                } else {
+                                    $.showAlert({
+                                        'title': '提示',
+                                        'content': '信息为填写',
+                                        'sure': ''
+                                    });
+                                }
+                            } else {
+                                $.showAlert({
+                                    'title': '提示',
+                                    'content': '验证码错误',
+                                    'sure': ''
+                                });
+                            }
+                        },
+                        sendCode: function () {
+                            if (this.phoneFlag == true) {
+                                this.$http.post(userinfo.sendmessage, {
+                                    phone: this.phone
+                                }, {
+                                    emulateJSON: true
+                                }).then(function (result) {
+                                    if (1 == result.data.data.status) {
+
+                                        // 发送成功
+                                        resultCode = result.data.data.code;
+                                    } else {
+                                        $.showAlert({
+                                            'title': '提示',
+                                            'content': '短信发送失败',
+                                            'sure': ''
+                                        });
+                                    }
+                                }, function () {
+
+                                })
+                            } else {
+                                $.showAlert({
+                                    'title': '提示',
+                                    'content': '请输入正确的手机号码',
+                                    'sure': ''
+                                });
+                            }
+                        },
+                        goBack: function () {
+                            history.go(-1);
+                        }
+                    },
+                    watch: {
+                        'userName': {
+                            handler: function (val) {
+                                if (isNotEmpty(val)) {
+                                    this.$http.get(userinfo.checkusername, {
+                                        userName: val
+                                    }).then(function (result) {
+                                        var obj = result.data;
+                                        if (10000 == obj.code) {
+                                            if (0 == obj.data) {
+                                                // 用户名已经存在了
+                                                $.showAlert({
+                                                    'title': '提示',
+                                                    'content': '用户名已经存在',
+                                                    'sure': ''
+                                                });
+                                                this.userNameFlag = false;
+                                                this.userName = '';
+                                            } else {
+
+                                                //用户名可注册
+                                                this.userNameFlag = true;
+                                            }
+                                        } else {
+                                            $.showAlert({
+                                                'title': '提示',
+                                                'content': '服务器偷懒了~~',
+                                                'sure': this.goBack
+                                            });
+                                        }
+                                    }, function () {
+                                        $.showAlert({
+                                            'title': '提示',
+                                            'content': '页面偷懒了~~',
+                                            'sure': this.goBack
+                                        });
+                                    })
+                                }
+                            }
+                        },
+                        'phone': {
+                            handler: function (val) {
+                                if (isNotEmpty(val) && val.length == 11) {
+                                    this.$http.get(userinfo.checkphone, {
+                                        phone: val
+                                    }).then(function (result) {
+                                        var obj = result.data;
+                                        if (10000 == obj.code) {
+                                            if (0 == obj.data) {
+                                                // 用户名已经存在了
+                                                $.showAlert({
+                                                    'title': '提示',
+                                                    'content': '手机号码已经注册',
+                                                    'sure': ''
+                                                });
+                                                this.phoneFlag = false;
+                                                this.phone = '';
+                                            } else {
+
+                                                //用户名可注册
+                                                this.phoneFlag = true;
+                                            }
+                                        } else {
+                                            $.showAlert({
+                                                'title': '提示',
+                                                'content': '服务器偷懒了~~',
+                                                'sure': this.goBack
+                                            });
+                                        }
+                                    }, function () {
+                                        $.showAlert({
+                                            'title': '提示',
+                                            'content': '页面偷懒了~~',
+                                            'sure': this.goBack
+                                        });
+                                    })
+                                }
+                            }
+                        },
+                    }
+                })
+            })
+        </script>
+    </head>
+
+<body class="login_bg">
+<section>
+    <div id="app">
+
+        <header class="tui_header header1">
+            <h1>注册
+                <div class="backicon" data-href="JavaScript:history.go(-1)"></div>
+            </h1>
+        </header>
+
+        <!--中间内容-->
+        <div class="tui_container ">
+
+            <div class="login_index register">
+                <div class="title">加入我们，我与你同在</div>
+                <div class="form_item">
+                    <div class="label">手机号：</div>
+                    <div class="form_value">
+                        <input v-model="phone" id="phone" maxlength="11" type="phone" placeholder="请输入您的手机号"/>
+                    </div>
+                </div>
+
+                <div class="form_item">
+                    <div class="label">验证码</div>
+                    <div class="form_value mr_0">
+                        <input maxlength="6" placeholder="短信验证码" type="tel" v-model="code"
+                               style="width: 80px;">
+                        <input @click="sendCode" class="yz-btn " value="发送验证码" type="button">
+                        <div class="sp"></div>
+                    </div>
+                </div>
+
+                <div class="form_item">
+                    <div class="label">用户名：</div>
+                    <div class="form_value">
+                        <input v-model="userName" id="userName" type="text" placeholder="请输入您的用户名"/>
+                    </div>
+                </div>
+                <div class="form_item">
+                    <div class="label">密码：</div>
+                    <div class="form_value">
+                        <input id="password" type="password" placeholder="请输入您的密码"/>
+                    </div>
+                </div>
+                <div class="form_item">
+                    <div class="label">确认密码：</div>
+                    <div class="form_value">
+                        <input id="psw" type="password" placeholder="请输入您的密码"/>
+                    </div>
+                </div>
+                <div class="yz"><span>两次输入密码不一致</span></div>
+                <div class="footerbtn">
+                    <button @click='registerUser' id="but" class="btn btn_primary  btn_block">确认注册</button>
+                    <button data-href="login.html" class="btn btn_primary  btn_block">取消</button>
+                </div>
+                <div class="footerbtn">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!doctype html>
+<!--HTML5 doctype-->
+<html>
+
+<head>
+    <title>首页</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport"
+          content="width=device-width,height=device-height,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <meta name="format-detection" content="telephone=no">
+    <!--框架开始-->
+    <script src="js/jquery-1.11.1.min.js"></script>
+    <script src="js/framework.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/tuimobile.css"/>
+    <!--框架结束-->
+    <link rel="stylesheet" type="text/css" id="skin" href="css/daning_wx_style.css"/>
+    <!--vue-->
+    <script src="js/vue.js"></script>
+    <script src="js/vue-resource.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/tui_loading.js"></script>
+    <script src="js/tui_popWin.js"></script>
+    <script src="js/config.js"></script>
+    <script>
+        $(function () {
+            var userCode = getCookieValue("userCode");
+            if (isEmpty(userCode)) {
+                window.location = "login.html";
+            }
+            new Vue({
+                el: '#app',
+                data: {
+                    isFace: 0,
+                    userName: getCookieValue("userName")
+                },
+                methods: {
+                    getisface: function () {
+                        this.$http.get(userinfo.isface, {
+                            userCode: userCode
+                        }).then(function (result) {
+                            this.isFace = result.data.data;
+                        }, function () {
+
+                        })
+                    },
+                    linkUrl: function (status) {
+                        if (status == 'update') {
+
+                            window.location.href = "faceUpdate.html";
+                        } else {
+                            window.location.href = "accountManage.html";
+                        }
+                    }
+                },
+                ready: function () {
+                    this.getisface();
+                }
+            })
+        })
+    </script>
+</head>
+
+<body class="wbg">
+<section>
+    <div>
+        <header class="tui_header header1">
+            <h1>首页
+                <div class="backicon" data-href="JavaScript:history.go(-1)"></div>
+            </h1>
+        </header>
+        <div class="tui_container" id="app">
+            <div>欢迎{{userName}}登陆</div>
+            <div class="footerbtn">
+                <button data-href="newDynamic.html" class="btn btn_primary  btn_block">新增动态</button>
+            </div>
+            <div class="footerbtn">
+                <button data-href="mySpace.html" class="btn btn_primary  btn_block">我的空间</button>
+            </div>
+            <div class="footerbtn">
+                <button data-href="allSpace.html" class="btn btn_primary  btn_block">全部动态</button>
+            </div>
+            <div class="footerbtn" v-if="isFace == 1" @click="linkUrl('update')">
+                <button class="btn btn_primary  btn_block">人脸更新</button>
+            </div>
+            <div class="footerbtn" v-else @click="linkUrl('register')">
+                <button class="btn btn_primary  btn_block">人脸注册</button>
+            </div>
+
+            <!--<div class="footerbtn">
+                <button data-href="identify.html" class="btn btn_primary  btn_block">人脸认证</button>
+            </div>-->
+        </div>
+    </div>
+</section>
+</body>
+
+</html>

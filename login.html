@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>登录</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport"
+          content="width=device-width,height=device-height,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <meta name="format-detection" content="telephone=no">
+    <script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
+    <script src="js/framework.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/tui_popWin.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/tuimobile.css"/>
+    <link rel="stylesheet" type="text/css" id="skin " href="css/daning_wx_style.css"/>
+    <script type="text/javascript">
+        $(function () {
+            $('body').on('touchmove', function (event) {
+                event.preventDefault();
+            });
+            $("#but").click(function () {
+
+                var phone = $("#phone").val();
+                var password = $("#password").val();
+                if (isEmpty(phone)) {
+                    alert("电话号码为空");
+                    return;
+                }
+                if (isEmpty(password)) {
+                    alert("密码为空");
+                    return;
+                }
+                $.ajax({
+                    url: userinfo.login,
+                    type: "post",
+                    data: {
+                        phone: phone,
+                        password: password
+                    },
+                    async: false,
+                    success: function (result) {
+                        console.info(result);
+                        var obj = result.data;
+                        if (result.code == 10000) {
+                            if (obj.status == "1") {
+                                // 登录成功
+                                setCookie("userCode", obj.userCode);
+                                setCookie("userName", obj.userName);
+                                window.location = "index.html";
+                            } else if (obj.status == "0") {
+                                $.showAlert({
+                                    'title': '提示',
+                                    'content': '手机号不存在',
+                                    'sure': reload
+                                });
+                            } else if (obj.status == "2") {
+                                $.showAlert({
+                                    'title': '提示',
+                                    'content': '密码错误，请重新输入',
+                                    'sure': ''
+                                });
+                            }
+                        } else {
+                            $.showAlert({
+                                'title': '提示',
+                                'content': '服务器偷懒了~~',
+                                'sure': reload
+                            });
+                        }
+                    },
+                    error: function () {
+                        $.showAlert({
+                            'title': '提示',
+                            'content': '页面偷懒了~~',
+                            'sure': reload
+                        });
+                    }
+                });
+                function reload() {
+                    window.location.reload();
+                }
+            })
+        })
+    </script>
+</head>
+
+<body>
+<section>
+    <div id="page1">
+        <!--中间内容-->
+        <div class="tui_container login_bg">
+            <div class="title">自由的脚步从来不会停止</div>
+            <div class="login_index ">
+                <div class="form_item">
+                    <div class="label">手机号：</div>
+                    <div class="form_value">
+                        <input id="phone" type="text" placeholder="请输入您的用户名"/>
+                    </div>
+                </div>
+                <div class="form_item">
+                    <div class="label">密码：</div>
+                    <div class="form_value">
+                        <input id="password" type="password" placeholder="请输入您的密码"/>
+                    </div>
+                </div>
+                <div class="info cl">
+                    <div class="forget rz_index" data-href="forgetPassword.html">忘记密码</div>
+                    <div class="error_msg" data-href="register.html">新用户注册</div>
+                </div>
+                <div class="footerbtn">
+                    <button id="but" class="btn btn_primary  btn_block">登录</button>
+                </div>
+
+                <div class="footerbtn">
+                    <button class="btn btn_primary  btn_block" data-href="camera.html">刷脸登陆</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+</html>

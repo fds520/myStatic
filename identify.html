@@ -1,0 +1,105 @@
+<!doctype html>
+<!--HTML5 doctype-->
+<html>
+
+<head>
+    <title>人脸认证</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport"
+          content="width=device-width,height=device-height,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <meta name="format-detection" content="telephone=no">
+    <!--框架开始-->
+    <script src="js/jquery-1.11.1.min.js"></script>
+    <script src="js/framework.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/tuimobile.css"/>
+    <!--框架结束-->
+    <link rel="stylesheet" type="text/css" id="skin" href="css/daning_wx_style.css"/>
+    <!--vue-->
+    <script src="js/vue.js"></script>
+    <script src="js/vue-resource.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/tui_loading.js"></script>
+    <script src="js/tui_popWin.js"></script>
+    <script src="js/config.js"></script>
+    <script>
+        $(function () {
+            var v = new Vue({
+                el: '#app',
+                data: {
+                    status: 0,
+                },
+                methods: {
+                    uploadPublic: function () {
+                        var fb = new FormData($('#coverImg')[0]);
+                        this.status = 1;
+                        $.ajax({
+                            url: baiduface.identify,
+                            type: 'POST',
+                            cache: false,
+                            data: fb,
+                            processData: false,
+                            contentType: false,
+                            success: function (result) {
+                                if (result.code == 10000) {
+                                    if (result.data.status == 1) {
+                                        setCookie("userCode", result.data.userCode);
+                                        setCookie("userName", result.data.userName);
+                                        $.showAlert({
+                                            'title': '提示',
+                                            'content': '人脸认证成功!' + result.data.userCode + result.data.userName,
+                                            'sure': v.close
+                                        });
+                                    } else {
+                                        $.showAlert({
+                                            'title': '提示',
+                                            'content': result.data.msg,
+                                            'sure': ''
+                                        });
+                                    }
+                                } else {
+                                    $.showAlert({
+                                        'title': '提示',
+                                        'content': '服务器偷懒了~~',
+                                        'sure': ''
+                                    });
+                                }
+
+                            },
+                            error: function () {
+
+                            }
+                        })
+                    },
+                    close: function () {
+                        history.go(-1);
+                    }
+
+                },
+                ready: function () {
+
+                }
+            })
+        })
+    </script>
+</head>
+
+<body class="wbg">
+<section>
+    <div>
+        <header class="tui_header header1">
+            <h1>人脸认证
+                <div class="backicon" data-href="JavaScript:history.go(-1)"></div>
+            </h1>
+        </header>
+        <div class="tui_container" id="app">
+            认证的图片：
+            <form id="coverImg" enctype="multipart/form-data" v-if="status == 0">
+                <input id="file" type="file" name="file"/>
+                <button class="btn btn_primary" type="button" @click="uploadPublic">上传</button>
+            </form>
+        </div>
+    </div>
+</section>
+</body>
+
+</html>
